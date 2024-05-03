@@ -7,11 +7,11 @@
 
 # - import_tasks: "tasks/service/pind/pind.yml"
 #   vars:
-#     pind_version: "1.0.3"
+#     pind_version: "1.0.4"
 
 - name: "pind set_fact 0"
   set_fact:
-    pind_version0: "{{ pind_version | default('1.0.3') }}"
+    pind_version0: "{{ pind_version | default('1.0.4') }}"
     pind_bin_dir: "/usr/bin"
 
 - name: "pind set_fact 1"
