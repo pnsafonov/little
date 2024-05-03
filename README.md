@@ -1,6 +1,9 @@
 # Ansible Collection - lexx.little
 
-Collection with general set of tasks.
+Collection with general set of tasks.   
+
+To use task from collection see example below.   
+There is single role to import any task.
 
 ### Add collection as dependency
 requirements.yml:

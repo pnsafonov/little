@@ -141,7 +141,7 @@
 - name: "pind expand /lib/systemd/system/pind.service"
   become: true
   template:
-    src: "tasks/test/templates/pind.service"
+    src: "tasks/service/pind/conf/pind.service"
     dest: "/lib/systemd/system/pind.service"
     mode: "0644"
   register: pind_service_result
