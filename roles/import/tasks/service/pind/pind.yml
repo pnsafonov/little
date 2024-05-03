@@ -1,0 +1,188 @@
+---
+
+# - import_role:
+#     name: lexx.little.import
+#   vars:
+#     task_path: "tasks/service/pind/pind.yml"
+
+# - import_tasks: "tasks/service/pind/pind.yml"
+#   vars:
+#     pind_version: "1.0.3"
+
+- name: "pind set_fact 0"
+  set_fact:
+    pind_version0: "{{ pind_version | default('1.0.3') }}"
+    pind_bin_dir: "/usr/bin"
+
+- name: "pind set_fact 1"
+  set_fact:
+    pind_tgz: "pind_{{ pind_version0 }}_linux_amd64.tar.gz"
+    pind_bin: "{{ pind_bin_dir }}/pind"
+
+- name: "pind set_fact 2"
+  set_fact:
+    pind_url: "https://github.com/pnsafonov/pind/releases/download/v{{ pind_version0 }}/{{ pind_tgz }}"
+    pind_tgz_tmp: "/tmp/{{ pind_tgz }}"
+
+
+- name: "pind check {{ pind_tgz_tmp }} exists"
+  become: true
+  stat:
+    path: "{{ pind_tgz_tmp }}"
+    get_attributes: false
+    get_checksum: false
+    get_mime: false
+  register: result_pind_tgz_tmp
+
+- name: "pind remove tmp file 0 {{ pind_tgz_tmp }}"
+  become: true
+  ansible.builtin.file:
+    path: "{{ pind_tgz_tmp }}"
+    state: absent
+  changed_when: false
+  when: result_pind_tgz_tmp.stat.exists
+
+
+- name: "pind check {{ pind_bin }} exists"
+  become: true
+  stat:
+    path: "{{ pind_bin }}"
+    get_attributes: false
+    get_checksum: false
+    get_mime: false
+  register: result_pind_bin
+
+- name: "pind set_fact 3"
+  set_fact:
+    pind_exists: "{{ result_pind_bin.stat.exists }}"
+    pind_is_old_version: false
+    pind_need_update: false
+
+
+# new pind has --print-name option
+- name: "pind check 0"
+  become: true
+  shell: |
+    set -e
+    {{ pind_bin }} --print-name
+  register: pind_check_0_result
+  changed_when: false
+  when: >
+    pind_exists
+
+# check pind is not too old, and pind has --print-name cmd option
+- name: "pind set_fact 4"
+  set_fact:
+    pind_is_old_version: true
+  when: >
+    pind_exists and
+    pind_check_0_result.stdout != "pind"
+
+
+# get numeric (like 1.0.1) version of pind
+- name: "pind check 1"
+  become: true
+  shell: |
+    set -e
+    {{ pind_bin }} --version-only
+  register: pind_check_1_result
+  changed_when: false
+  when: >
+    pind_exists and
+    not pind_is_old_version
+
+#    - debug:
+#        msg: "pind_exists = {{ pind_exists }}"
+#    - debug:
+#        msg: "pind_is_old_version = {{ pind_is_old_version }}"
+#    - debug:
+#        msg: "pind_version0 = {{ pind_version0 }}"
+#    - debug:
+#        msg: "pind_check_1_result = {{ pind_check_1_result }}"
+
+# compare versions of pind
+- name: "pind set_fact 5"
+  set_fact:
+    pind_need_update: true
+  when: >
+    pind_exists and
+    not pind_is_old_version and
+    pind_version0 is version(pind_check_1_result.stdout, '>')
+
+
+# download pind from github releases
+- name: "pind download"
+  ansible.builtin.get_url:
+    url: "{{ pind_url }}"
+    dest: "{{ pind_tgz_tmp }}"
+    mode: '0666'
+  when: >
+    not pind_exists or
+    pind_is_old_version or
+    pind_need_update
+
+#    - name: "pind stop service"
+#      ansible.builtin.service:
+#        name: pind
+#        state: stopped
+
+# extract pind from *.tar.gz
+- name: "pind unarchive"
+  become: true
+  ansible.builtin.unarchive:
+    src: "{{ pind_tgz_tmp }}"
+    dest: "{{ pind_bin_dir }}"
+  when: >
+    not pind_exists or
+    pind_is_old_version or
+    pind_need_update
+
+# expand systemd service unit file
+- name: "pind expand /lib/systemd/system/pind.service"
+  become: true
+  template:
+    src: "tasks/test/templates/pind.service"
+    dest: "/lib/systemd/system/pind.service"
+    mode: "0644"
+  register: pind_service_result
+
+# set pind binary permissions
+- name: "pind bin permissions"
+  become: true
+  ansible.builtin.file:
+    path: "{{ pind_bin }}"
+    owner: root
+    group: root
+    mode: '0755'
+
+# reload systemctl if pind.service changed
+- name: "pind systemctl daemon-reload"
+  become: true
+  shell: |
+    set -e
+    systemctl daemon-reload
+  changed_when: false
+  when: >
+    pind_service_result.changed
+
+# restart pind service if needed
+- name: "pind restarted service"
+  become: true
+  ansible.builtin.service:
+    name: pind
+    enabled: true
+    state: restarted
+  when: >
+    not pind_exists or
+    pind_is_old_version or
+    pind_need_update or
+    pind_service_result.changed
+
+
+# clean /tmp/*pind*.tar.gz
+- name: "pind remove tmp file 0 {{ pind_tgz_tmp }}"
+  become: true
+  ansible.builtin.file:
+    path: "{{ pind_tgz_tmp }}"
+    state: absent
+  changed_when: false

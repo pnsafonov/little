@@ -1,0 +1,9 @@
+---
+#
+# - import_role:
+#     name: lexx.little.import
+#   vars:
+#     task_path: "tasks/service/pind/pind.yml"
+#     some_var: 1111
+
+- import_tasks: "{{ task_path }}"
