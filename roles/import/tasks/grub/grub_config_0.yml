@@ -1,0 +1,32 @@
+---
+
+# - import_role:
+#     name: lexx.little.import
+#   vars:
+#     task_path: "tasks/grub/grub_config_0.yml"
+
+# - import_tasks: "tasks/grub/grub_config_0.yml"
+
+
+- name: "grub_config_0 template"
+  become: true
+  template:
+    src: "tasks/grub/conf/01_max_cstate.cfg"
+    dest: "/etc/default/grub.d/01_max_cstate.cfg"
+    mode: "0644"
+  register: grub_config_result_01
+
+# update-grub
+- name: "grub_config_0 update grub"
+  become: true
+  shell: |
+    set -e
+    update-grub
+  when: grub_config_result_01.changed
+  register: grub_config_result_01
+
+## need reboot after update grub
+#- name: "grub_config_0 reboot after update grub"
+#  become: true
+#  reboot:
+#  when: update_grub_result.changed

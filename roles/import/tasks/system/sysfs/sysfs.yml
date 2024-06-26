@@ -1,0 +1,39 @@
+---
+
+# - import_role:
+#     name: lexx.little.import
+#   vars:
+#     task_path: "tasks/system/sysfs/sysfs.yml"
+
+# - import_tasks: "tasks/system/sysfs/sysfs.yml"
+
+# apt install sysfsutils
+# cat /sys/kernel/debug/sched/migration_cost_ns
+# vi /etc/sysfs.d/01_migration_cost.conf
+# kernel/debug/sched/migration_cost_ns=5000000
+# systemctl restart sysfsutils
+
+- name: "sysfs install"
+  become: true
+  package:
+    name:
+      - sysfsutils
+    state: present
+
+- name: "sysfs 01_migration_cost.conf"
+  become: true
+  template:
+    src: "tasks/system/sysfs/conf/01_migration_cost.conf"
+    dest: "/etc/sysfs.d/01_migration_cost.conf"
+    mode: "0644"
+  register: sysfs_conf_result_01
+
+- name: "sysfs restarted service sysfsutils"
+  become: true
+  ansible.builtin.service:
+    name: sysfsutils
+#    enabled: true
+    state: restarted
+  when: >
+    sysfs_conf_result_01.changed
+
