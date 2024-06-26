@@ -1,0 +1,50 @@
+---
+
+#- import_role:
+#    name: lexx.little.import
+#  vars:
+#    task_path: "tasks/system/sysctl/enable/42-kernel.yml"
+
+# - import_tasks: "tasks/system/sysctl/enable/42-kernel.yml"
+
+- name: "sysctl kernel.sched_min_granularity"
+  become: true
+  ansible.posix.sysctl:
+    name: kernel.sched_min_granularity_ns
+    value: 100000000
+    state: present
+    sysctl_file: /etc/sysctl.d/42-kernel.conf
+
+- name: "sysctl kernel.sched_wakeup_granularity_ns"
+  become: true
+  ansible.posix.sysctl:
+    name: kernel.sched_wakeup_granularity_ns
+    value: 10000000
+    state: present
+    sysctl_file: /etc/sysctl.d/42-kernel.conf
+
+- name: "sysctl kernel.sched_wakeup_granularity_ns"
+  become: true
+  ansible.posix.sysctl:
+    name: kernel.sched_nr_migrate
+    value: 2
+    state: present
+    sysctl_file: /etc/sysctl.d/42-kernel.conf
+
+# better L* cache hit
+- name: "sysctl kernel.sched_migration_cost_ns"
+  become: true
+  ansible.posix.sysctl:
+    name: kernel.sched_migration_cost_ns
+    value: 50000000
+    state: present
+    sysctl_file: /etc/sysctl.d/42-kernel.conf
+
+# disable Auto-grouping(desktop)
+- name: "sysctl kernel.sched_migration_cost_ns"
+  become: true
+  ansible.posix.sysctl:
+    name: kernel.sched_autogroup_enabled
+    value: 0
+    state: present
+    sysctl_file: /etc/sysctl.d/42-kernel.conf
