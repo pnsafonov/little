@@ -1,9 +1,9 @@
 ---
 
-# - import_role:
-#     name: lexx.little.import
-#   vars:
-#     task_path: "tasks/grub/grub_config_0.yml"
+#- import_role:
+#    name: lexx.little.import
+#  vars:
+#    task_path: "tasks/grub/grub_config_0.yml"
 
 # - import_tasks: "tasks/grub/grub_config_0.yml"
 
