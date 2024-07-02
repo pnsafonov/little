@@ -1,10 +1,15 @@
 ---
 
-# - import_tasks: "tasks/service/pcm/pkg/debian_11.yml"
+#- import_tasks: "tasks/service/pcm/pkg/debian_11.yml"
+
+- name: "pcm packages list"
+  ansible.builtin.package_facts:
+    manager: auto
 
 - name: "pcm install from github for debian 11"
   become: true
   ansible.builtin.apt:
-    name: pcm
     deb: https://github.com/pnsafonov/pcm_pkg/releases/download/202405/pcm-202405.deb
     state: present
+  when: >
+    'pcm' not in ansible_facts.packages

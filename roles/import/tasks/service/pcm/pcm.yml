@@ -44,4 +44,3 @@
     state: restarted
   when: >
     pcm_sensor_service_result.changed
-
