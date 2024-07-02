@@ -1,0 +1,47 @@
+---
+
+# - import_role:
+#     name: lexx.little.import
+#   vars:
+#     task_path: "tasks/service/pcm/pcm.yml"
+
+# - import_tasks: "tasks/service/pcm/pcm.yml"
+
+
+- name: "pcm-sensor-server set_fact 0"
+  set_fact:
+    os_name_0: "{{ ansible_distribution|lower }}_{{ ansible_distribution_major_version }}"
+
+- name: "pcm-sensor-server install pkg by OS"
+  include_tasks: "tasks/service/pcm/pkg/{{ os_name_0 }}.yml"
+
+
+# expand systemd service unit file
+- name: "pcm-sensor-server expand /lib/systemd/system/pcm.service"
+  become: true
+  template:
+    src: "tasks/service/pcm/conf/pcm.service"
+    dest: "/lib/systemd/system/pcm.service"
+    mode: "0644"
+  register: pcm_sensor_service_result
+
+# reload systemctl if pcm-sensor-server.service changed
+- name: "pcm-sensor-server systemctl daemon-reload"
+  become: true
+  shell: |
+    set -e
+    systemctl daemon-reload
+  changed_when: false
+  when: >
+    pcm_sensor_service_result.changed
+
+# restart pcm-sensor-server service if needed
+- name: "pcm-sensor-server restarted service pcm"
+  become: true
+  ansible.builtin.service:
+    name: pcm
+    enabled: true
+    state: restarted
+  when: >
+    pcm_sensor_service_result.changed
+

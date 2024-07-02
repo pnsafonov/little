@@ -1,0 +1,10 @@
+---
+
+# - import_tasks: "tasks/service/pcm/pkg/debian_12.yml"
+
+- name: "pcm install from official deb for debian 12"
+  become: true
+  package:
+    name:
+      - pcm
+    state: present

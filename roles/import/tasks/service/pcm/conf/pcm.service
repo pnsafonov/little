@@ -1,0 +1,20 @@
+[Unit]
+Description=PCM Prometheus exporter
+After=network.target
+Wants=network.target
+Requires=network.target
+
+[Service]
+Type=simple
+User=root
+Group=root
+LimitNOFILE=500000
+
+ExecStart=/usr/sbin/pcm-sensor-server
+ExecReload=/usr/bin/kill -HUP $MAINPID
+
+Restart=on-failure
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target
