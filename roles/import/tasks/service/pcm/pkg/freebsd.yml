@@ -1,0 +1,10 @@
+---
+
+#- import_tasks: "tasks/service/pcm/pkg/freebsd.yml"
+
+- name: "pcm install for freebsd"
+  become: true
+  package:
+    name:
+      - intel-pcm
+    state: present
