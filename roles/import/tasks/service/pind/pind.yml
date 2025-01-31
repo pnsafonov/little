@@ -138,6 +138,15 @@
     pind_is_old_version or
     pind_need_update
 
+- name: "is exists /lib/systemd/system/pind.service"
+  become: true
+  stat:
+    path: "/lib/systemd/system/pind.service"
+    get_attributes: false
+    get_checksum: false
+    get_mime: false
+  register: result_pind_service_file
+
 # expand systemd service unit file
 - name: "pind expand /lib/systemd/system/pind.service"
   become: true
@@ -146,6 +155,8 @@
     dest: "/lib/systemd/system/pind.service"
     mode: "0644"
   register: pind_service_result
+  when: >
+    not result_pind_service_file.exists
 
 # set pind binary permissions
 - name: "pind bin permissions"
