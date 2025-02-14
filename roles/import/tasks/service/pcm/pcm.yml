@@ -12,6 +12,13 @@
   set_fact:
     os_name_0: "{{ ansible_distribution|lower }}_{{ ansible_distribution_major_version }}"
 
+- name: "add msr kernel module"
+  become: true
+  community.general.modprobe:
+    name: msr
+    state: present
+    persistent: present
+
 - name: "pcm-sensor-server install pkg by OS"
   include_tasks: "tasks/service/pcm/pkg/{{ os_name_0 }}.yml"
 
