@@ -156,7 +156,7 @@
     mode: "0644"
   register: pind_service_result
   when: >
-    not result_pind_service_file.exists
+    not result_pind_service_file.stat.exists
 
 # set pind binary permissions
 - name: "pind bin permissions"
