@@ -138,14 +138,9 @@
     pind_is_old_version or
     pind_need_update
 
-- name: "is exists /lib/systemd/system/pind.service"
+- name: "populate service facts"
   become: true
-  stat:
-    path: "/lib/systemd/system/pind.service"
-    get_attributes: false
-    get_checksum: false
-    get_mime: false
-  register: result_pind_service_file
+  service_facts:
 
 # expand systemd service unit file
 - name: "pind expand /lib/systemd/system/pind.service"
@@ -156,7 +151,7 @@
     mode: "0644"
   register: pind_service_result
   when: >
-    not result_pind_service_file.stat.exists
+    not ansible_facts.services['nginx'] is defined
 
 # set pind binary permissions
 - name: "pind bin permissions"
