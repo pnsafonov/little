@@ -151,7 +151,7 @@
     mode: "0644"
   register: pind_service_result
   when: >
-    not ansible_facts.services['pind'] is defined
+    not ansible_facts.services['pind.service'] is defined
 
 # set pind binary permissions
 - name: "pind bin permissions"
